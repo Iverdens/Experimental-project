@@ -20,9 +20,14 @@ type ClientManager struct {
 	messages []string
 }
 
+func (cm *ClientManager) ClearHistory() {
+	cm.messages = []string{} // Очищаем слайс с сообщениями
+}
+
 func NewClientManager() *ClientManager {
 	return &ClientManager{
-		clients: make(map[net.Conn]*Client),
+		clients:  make(map[net.Conn]*Client),
+		messages: []string{},
 	}
 }
 

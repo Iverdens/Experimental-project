@@ -2,7 +2,7 @@ import serial
 import os
 
 # 1. Настройка порта (проверь в диспетчере устройств, какой у тебя COM-порт)
-ser = serial.Serial('COM4', 9600) 
+ser = serial.Serial('COM4', 115200) 
 
 print("System Bridge Active. Monitoring FPGA...")
 

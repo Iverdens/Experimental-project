@@ -49,41 +49,13 @@ func main() {
 	}
 }
 
-func isSecure() bool {
-    data, err := os.ReadFile("security_status.txt")
-    if err != nil {
-        return false // Если файла нет — считаем, что небезопасно
-    }
-    return string(data) == "1"
-}
-
-func isChannelSecure() bool {
-    data, err := os.ReadFile("security_status.txt")
-    if err != nil {
-        return false // Если файла нет — считаем, что небезопасно
-    }
-    return string(data) == "1"
-}
-
 func handleConnection(conn net.Conn) {
-	if !isChannelSecure() {
-        conn.Write([]byte("[SECURITY ALERT] Channel compromised! Access denied.\n"))
-        conn.Close()
-        return
-    }
-
-	if !isSecure() {
-        conn.Write([]byte("[SECURITY ALERT] Quantum channel intercepted! Access denied.\n"))
-        conn.Close()
-        return
-    }
-
 	if !performQuantumAuth() {
-        conn.Write([]byte("[SECURITY ALERT] Quantum channel intercepted! Zeroization triggered. Access denied.\n"))
-        conn.Close()
-        return
-    }
-	
+		conn.Write([]byte("[SECURITY ALERT] Quantum channel intercepted! Zeroization triggered. Access denied.\n"))
+		conn.Close()
+		return
+	}
+
 	defer conn.Close()
 
 	conn.Write([]byte(WelcomMessage))
@@ -92,6 +64,11 @@ func handleConnection(conn net.Conn) {
 	var name string
 
 	if scanner.Scan() {
+		if !performQuantumAuth() {
+			conn.Write([]byte("\n[SECURITY ALERT] CHANNEL COMPROMISED! ZEROIZATION TRIGGERED. DISCONNECTING...\n"))
+			return
+		}
+
 		name = scanner.Text()
 		if name == "" {
 			conn.Write([]byte("Name cannot be empty.\n"))
@@ -123,6 +100,12 @@ func handleConnection(conn net.Conn) {
 	sendPrompt(conn, name)
 
 	for scanner.Scan() {
+		if !performQuantumAuth() {
+			clientManager.ClearHistory()
+			conn.Write([]byte("\n[SECURITY ALERT] SYSTEM COMPROMISED! DATA ZEROIZED!\n"))
+			return // Выход из цикла и закрытие соединения
+		}
+
 		msg := scanner.Text()
 		if msg == "" {
 			// При пустом вводе отправляем пустую строку и приглашение
@@ -175,12 +158,10 @@ func printLocalIP() {
 }
 
 func performQuantumAuth() bool {
-    // Читаем файл, который обновляет наш Python-скрипт
-    data, err := os.ReadFile("security_status.txt")
-    if err != nil {
-        // Если файла нет, считаем систему "небезопасной" (безопасность по умолчанию)
-        return false
-    }
-    // Если в файле "1", значит канал чист
-    return string(data) == "1"
+	data, err := os.ReadFile("security_status.txt")
+	if err != nil {
+		return false // Файла нет -> доступ запрещен
+	}
+
+	return string(data) == "1"
 }
