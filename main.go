@@ -38,6 +38,19 @@ func main() {
 
 	fmt.Println("Listening on the port :" + port)
 
+	// ЗАПУСКАЕМ ФОНОВЫЙ МОНИТОРИНГ
+	go func() {
+		for {
+			if !performQuantumAuth() {
+				fmt.Println("\n[!!!] ALERT: Zeroizing and disconnecting all users!")
+				clientManager.KickAll()
+				// Можно добавить небольшую паузу, чтобы не спамить в консоль
+				time.Sleep(2 * time.Second)
+			}
+			time.Sleep(500 * time.Millisecond)
+		}
+	}()
+
 	for {
 		conn, err := ln.Accept()
 		if err != nil {
@@ -47,6 +60,7 @@ func main() {
 
 		go handleConnection(conn)
 	}
+
 }
 
 func handleConnection(conn net.Conn) {

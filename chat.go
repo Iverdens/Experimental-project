@@ -20,6 +20,18 @@ type ClientManager struct {
 	messages []string
 }
 
+// В chat.go
+func (m *ClientManager) KickAll() {
+	m.mu.Lock()
+	defer m.mu.Unlock()
+	for conn := range m.clients {
+		conn.Write([]byte("\n[SECURITY ALERT] CHANNEL COMPROMISED! ZEROIZATION TRIGGERED. DISCONNECTING...\n"))
+		conn.Close() // Закрываем сокет
+	}
+	m.clients = make(map[net.Conn]*Client) // Очищаем список
+	m.messages = []string{}                // Стираем историю
+}
+
 func (cm *ClientManager) ClearHistory() {
 	cm.messages = []string{} // Очищаем слайс с сообщениями
 }
