@@ -49,7 +49,41 @@ func main() {
 	}
 }
 
+func isSecure() bool {
+    data, err := os.ReadFile("security_status.txt")
+    if err != nil {
+        return false // Если файла нет — считаем, что небезопасно
+    }
+    return string(data) == "1"
+}
+
+func isChannelSecure() bool {
+    data, err := os.ReadFile("security_status.txt")
+    if err != nil {
+        return false // Если файла нет — считаем, что небезопасно
+    }
+    return string(data) == "1"
+}
+
 func handleConnection(conn net.Conn) {
+	if !isChannelSecure() {
+        conn.Write([]byte("[SECURITY ALERT] Channel compromised! Access denied.\n"))
+        conn.Close()
+        return
+    }
+
+	if !isSecure() {
+        conn.Write([]byte("[SECURITY ALERT] Quantum channel intercepted! Access denied.\n"))
+        conn.Close()
+        return
+    }
+
+	if !performQuantumAuth() {
+        conn.Write([]byte("[SECURITY ALERT] Quantum channel intercepted! Zeroization triggered. Access denied.\n"))
+        conn.Close()
+        return
+    }
+	
 	defer conn.Close()
 
 	conn.Write([]byte(WelcomMessage))
@@ -138,4 +172,15 @@ func printLocalIP() {
 			}
 		}
 	}
+}
+
+func performQuantumAuth() bool {
+    // Читаем файл, который обновляет наш Python-скрипт
+    data, err := os.ReadFile("security_status.txt")
+    if err != nil {
+        // Если файла нет, считаем систему "небезопасной" (безопасность по умолчанию)
+        return false
+    }
+    // Если в файле "1", значит канал чист
+    return string(data) == "1"
 }
